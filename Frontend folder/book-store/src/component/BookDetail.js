@@ -1,65 +1,67 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import axios from "axios"
 import {
-  TextField,
-  FormLabel,
-  Box,
-  Button,
-  FormControlLabel,
-  Checkbox,
-} from "@mui/material";
-import axios from "axios";
-import {useNavigate} from "react-router-dom";
-
-
-const AddBook = () => {
-
-  const history = useNavigate()
-
-  const [inputs, setInputs] = useState({
-    name: "",
-    description: "",
-    price: "",
-    auther: "",
-    image: "",
-  });
-
- const [checked,setChecked] = useState(false)
+    TextField,
+    FormLabel,
+    Box,
+    Button,
+    FormControlLabel,
+    Checkbox,
+  } from "@mui/material";
 
 
 
+const BookDetail = () => {
 
-  const handleChange=(e)=>{
-    setInputs((prevState)=>(
-      {
-      ...prevState,
-      [e.target.name] : e.target.value 
-    }))
-  }
+    const[inputs,setInputs] =useState({});
+    const [checked,setChecked]=useState(false)
+    const id = useParams().id;
+    const history = useNavigate();
+    
+    useEffect(()=>{
 
+       const fetchHandeler = async()=>{
+        await axios.get(`http://localhost:5000/books/${id}`)
+        .then(res=>res.data)
+        .then((data)=>setInputs(data.book))
+       }
 
-
-const sendRequest =async()=>{
- await axios.post("http://localhost:5000/books/",
- {
-  name:String(inputs.name),
-  auther:String(inputs.auther),
-  price:Number(inputs.price),
-  description:String(inputs.description),
-  image:String(inputs.image),
-  available:Boolean(checked)
- }
- ).then(res=>res.data);
-}
+       fetchHandeler().then(data=>setInputs(data.book))
+    },[])
 
 
-const handleSubmit=(e)=>{
-  e.preventDefault();
-  sendRequest().then(()=>history("/books"))
-}
+    const handleChange=(e)=>{
+        setInputs((prevState)=>({
+          ...prevState,
+          [e.target.name] : e.target.value,
+        }));
+      }
+
+
+    const sendRequest = async()=>{
+        await axios.put(`http://localhost:5000/books/${id}`,
+        {
+            name:String(inputs.name),
+            auther:String(inputs.auther),
+            price:Number(inputs.price),
+            description:String(inputs.description),
+            image:String(inputs.image),
+            available:Boolean(checked)
+           }
+        ).then(res=>res.data)
+    }
+
+    const handleSubmit =(e)=>{
+       e.preventDefault();
+       sendRequest().then(()=>history("/books"))
+    }
+
+    
 
   return (
-    <>
-      <form onSubmit={handleSubmit}>
+    <div>
+          <form onSubmit={handleSubmit}>
         <Box
           display="flex"
           flexDirection="column"
@@ -128,12 +130,13 @@ const handleSubmit=(e)=>{
           />
 
           <Button varient="content" type="submit">
-            Add Book
+            update Book
           </Button>
         </Box>
       </form>
-    </>
-  );
-};
+      
+    </div>
+  )
+}
 
-export default AddBook;
+export default BookDetail
